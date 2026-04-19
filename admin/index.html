@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REYAD | Custom Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020617;
+            --surface: rgba(15, 23, 42, 0.8);
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.2);
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: rgba(255,255,255,0.1);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            background-image: radial-gradient(circle at 0% 0%, #0c4a6e 0%, transparent 25%),
+                              radial-gradient(circle at 100% 100%, #1e1b4b 0%, transparent 25%);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+        aside {
+            width: 280px;
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex: 1;
+            padding: 4rem;
+            max-width: 1200px;
+            overflow-y: auto;
+        }
+        .nav-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: var(--accent-glow);
+            color: var(--accent);
+            transform: translateX(5px);
+        }
+        .form-section {
+            display: none;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .form-section.active { display: block; }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .glass-card {
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        .stat-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .stat-card h4 { color: var(--text-dim); margin: 0; font-size: 0.8rem; text-transform: uppercase; }
+        .stat-card p { font-size: 1.5rem; font-weight: 800; margin: 0.5rem 0 0; color: var(--accent); }
+
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-dim); font-weight: 600; }
+        input, textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            color: white;
+            font-family: inherit;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: var(--accent); outline: none; }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .btn-save { background: var(--accent); color: var(--bg); box-shadow: 0 10px 20px var(--accent-glow); }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 15px 30px var(--accent-glow); }
+    </style>
+</head>
+<body>
+    <aside>
+        <h2 style="color: var(--accent); margin-bottom: 2rem;">REYAD.</h2>
+        <div class="nav-item active" onclick="showSection('profile')">👤 Profile</div>
+        <div class="nav-item" onclick="showSection('projects')">🚀 Projects</div>
+        <div class="nav-item" onclick="showSection('experience')">💼 Experience</div>
+        <div class="nav-item" onclick="showSection('skills')">🛠️ Skills</div>
+        <div class="nav-item" onclick="showSection('messages')" style="display: flex; justify-content: space-between;">
+            <span>📩 Messages</span>
+            <span id="msg-count" style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">0</span>
+        </div>
+        <div class="nav-item" onclick="showSection('config')" style="margin-top: auto; color: #f87171;">⚙️ Settings</div>
+    </aside>
+
+    <main>
+        <div id="config" class="form-section">
+            <h1>Admin Settings</h1>
+            <div class="config-card">
+                <p>To save changes to your website, you need a GitHub Personal Access Token.</p>
+                <div class="form-group">
+                    <label>GitHub Token (PAT)</label>
+                    <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx">
+                </div>
+                <button class="btn btn-save" onclick="saveToken()">Save Token Locally</button>
+            </div>
+        </div>
+
+        <div id="profile" class="form-section active">
+            <div class="stat-grid">
+                <div class="stat-card"><h4>Live Projects</h4><p id="stat-projects">0</p></div>
+                <div class="stat-card"><h4>Skills Listed</h4><p id="stat-skills">0</p></div>
+                <div class="stat-card"><h4>Experience</h4><p>Junior</p></div>
+            </div>
+            <h1>General Profile</h1>
+            <div class="glass-card">
+                <div id="profile-form"></div>
+                <button class="btn btn-save" onclick="saveData('profile')">Update Profile</button>
+            </div>
+        </div>
+
+        <div id="projects" class="form-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1>Project Management</h1>
+                <button class="btn" style="background: var(--text); color: var(--bg);" onclick="addProject()">+ Add Project</button>
+            </div>
+            <div class="glass-card">
+                <div id="projects-container"></div>
+                <button class="btn btn-save" onclick="saveData('projects')">Save All Projects</button>
+            </div>
+        </div>
+
+        <div id="experience" class="form-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1>Experience & Education</h1>
+                <button class="btn" style="background: var(--text); color: var(--bg);" onclick="addItem('experience')">+ Add Experience</button>
+            </div>
+            <div class="glass-card">
+                <div id="experience-form"></div>
+                <button class="btn btn-save" onclick="saveData('experience')">Save All Timeline</button>
+            </div>
+        </div>
+
+        <div id="skills" class="form-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1>Technical Skills</h1>
+                <button class="btn" style="background: var(--text); color: var(--bg);" onclick="addItem('skills')">+ Add Skill</button>
+            </div>
+            <div class="glass-card">
+                <div id="skills-form"></div>
+                <button class="btn btn-save" onclick="saveData('skills')">Save All Skills</button>
+            </div>
+        </div>
+
+        <div id="messages" class="form-section">
+            <h1>Recent Inquiries</h1>
+            <div class="glass-card">
+                <div id="messages-container">
+                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No messages yet.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>

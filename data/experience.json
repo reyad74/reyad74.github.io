@@ -1,0 +1,38 @@
+{
+  "experience": [
+    {
+      "role": "Junior Data Analyst",
+      "company": "Merkle",
+      "period": "2022-2023",
+      "description": [
+        "Analysed ad campaigns, clickstream, and customer surveys data, identified an increasing demand and launched a strategic product line.",
+        "Developed time series forecasting models to predict sales and optimize marketing budgets, got model performance of 92%.",
+        "Designed and executed A/B tests, performed rigorous statistical analysis. Led to 20% MoM increase in the conversion rate."
+      ]
+    },
+    {
+      "role": "Junior Data Analyst",
+      "company": "iQuanti",
+      "period": "2021-2022",
+      "description": [
+        "Performed in-depth market research and analysis to create online pages. Resulted in ~100% website growth and 30% increase in conversion rate YoY.",
+        "Delivered multiple training and mentorship sessions on analytical tools like SQL, MS Excel, Power BI, Tableau and Python.",
+        "Performed migration and enhancements for merchandising dashboard, involved data integration and its feature improvement."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Bachelor of Computer Science and Engineering",
+      "institution": "Daffodil International University",
+      "period": "2021-2025",
+      "grade": "First class distinction."
+    },
+    {
+      "degree": "Higher Secondary School",
+      "institution": "Sekh Amanullah Degree College",
+      "period": "2018-2019",
+      "grade": "First class distinction."
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "projects": [
+    {
+      "title": "Digital Music Store Data Analysis using SQL",
+      "description": "Analyzed music store data using advanced SQL queries to identify gaps and increase the business growth.",
+      "image": "images/proj_1.jpg",
+      "link": "https://github.com/reyad74/music_store_"
+    },
+    {
+      "title": "Data Analysis using Python Project for Beginners",
+      "description": "Performed exploratory data analysis on diwali sales data using Python to improve the customer experience.",
+      "image": "images/proj_2.jpg",
+      "link": "https://github.com/reyad74/python-_seales_analysis"
+    },
+    {
+      "title": "Power BI Sales dashboard Project for Beginners",
+      "description": "Designed a power bi dashboard for Madhav Store to track and analyze the online sales data across India.",
+      "image": "images/proj_3.jpg",
+      "link": "https://github.com/reyad74"
+    },
+    {
+      "title": "Sales Forecast- Time Series Forecasting",
+      "description": "Used multiple machine learning models to forecast sales (retail store) and performed time series analysis.",
+      "image": "images/proj_4.jpg",
+      "link": "https://github.com/reyad74"
+    },
+    {
+      "title": "Customer Segmentation using clustering model",
+      "description": "Developed a ML model to give various recommendations of financial products & services on target customer groups.",
+      "image": "images/proj_5.jpg",
+      "link": "https://github.com/reyad74"
+    }
+  ]
+}

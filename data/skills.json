@@ -1,0 +1,9 @@
+{
+  "skills": [
+    { "name": "SQL", "level": 95 },
+    { "name": "PYTHON", "level": 85 },
+    { "name": "Data Visualization", "level": 90 },
+    { "name": "Statistical Analysis", "level": 85 },
+    { "name": "Machine Learning", "level": 80 }
+  ]
+}
