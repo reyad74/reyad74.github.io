@@ -70,7 +70,6 @@ function initBackground() {
   const canvas = document.getElementById('bg-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  let particles = [];
   
   function resize() {
     canvas.width = window.innerWidth;
@@ -80,38 +79,199 @@ function initBackground() {
   window.addEventListener('resize', resize);
   resize();
   
-  class Particle {
+  // Game-like Warp Speed Starfield
+  let stars = [];
+  // Reduce star count on mobile for peak performance
+  const numStars = window.innerWidth < 768 ? 300 : 800;
+  const speed = 2; // Warp speed modifier
+  let cx = canvas.width / 2;
+  let cy = canvas.height / 2;
+
+  // Track mouse to shift the warp center
+  window.addEventListener('mousemove', (e) => {
+    cx += (e.clientX - cx) * 0.05;
+    cy += (e.clientY - cy) * 0.05;
+  });
+
+  class Star {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = (Math.random() - 0.5) * canvas.width * 2;
+      this.y = (Math.random() - 0.5) * canvas.height * 2;
+      this.z = Math.random() * canvas.width;
+      this.pz = this.z;
+    }
+    update() {
+      this.z -= speed;
+      if (this.z < 1) {
+        this.reset();
+        this.z = canvas.width;
+        this.pz = this.z;
+      }
+    }
+    draw() {
+      // Perspective projection
+      const sx = (this.x / this.z) * canvas.width + cx;
+      const sy = (this.y / this.z) * canvas.height + cy;
+      const r = (1 - this.z / canvas.width) * 3;
+
+      // Previous position for drawing lines (warp effect)
+      const px = (this.x / this.pz) * canvas.width + cx;
+      const py = (this.y / this.pz) * canvas.height + cy;
+      this.pz = this.z;
+
+      // Don't draw if out of bounds
+      if (sx < 0 || sx > canvas.width || sy < 0 || sy > canvas.height) return;
+
+      const alpha = 1 - (this.z / canvas.width);
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(14, 165, 233, ${alpha})`;
+      ctx.lineWidth = r;
+      ctx.moveTo(px, py);
+      ctx.lineTo(sx, sy);
+      ctx.stroke();
+    }
+  }
+
+  for (let i = 0; i < numStars; i++) {
+    stars.push(new Star());
+  }
+
+  // --- GAME TARGETS ---
+  let targets = [];
+  let sparks = [];
+
+  class Target {
     constructor() {
       this.reset();
     }
     reset() {
       this.x = Math.random() * canvas.width;
-      this.y = Math.random() * canvas.height;
-      this.vx = (Math.random() - 0.5) * 0.5;
-      this.vy = (Math.random() - 0.5) * 0.5;
-      this.size = Math.random() * 2;
+      this.y = -50;
+      this.size = Math.random() * 20 + 15; // 15 to 35px radius
+      this.vx = (Math.random() - 0.5) * 2;
+      this.vy = Math.random() * 1.5 + 0.5;
+      this.color = `hsl(${Math.random() * 60 + 300}, 100%, 60%)`; // Pink/Purple hues
+      this.points = Math.floor(Math.random() * 5) + 5;
+      this.angle = 0;
+      this.rotSpeed = (Math.random() - 0.5) * 0.1;
     }
     update() {
       this.x += this.vx;
       this.y += this.vy;
-      if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+      this.angle += this.rotSpeed;
+      if (this.y > canvas.height + 50 || this.x < -50 || this.x > canvas.width + 50) {
+        this.reset();
+      }
     }
     draw() {
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      for (let i = 0; i < this.points; i++) {
+        const a = (i / this.points) * Math.PI * 2;
+        const r = (i % 2 === 0) ? this.size : this.size * 0.5;
+        ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = this.color.replace(')', ', 0.2)').replace('hsl', 'hsla');
       ctx.fill();
+      
+      // Target crosshair in middle
+      ctx.beginPath();
+      ctx.arc(0, 0, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.restore();
     }
   }
-  
-  for (let i = 0; i < 100; i++) particles.push(new Particle());
-  
+
+  class Spark {
+    constructor(x, y, color) {
+      this.x = x;
+      this.y = y;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 5 + 2;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.life = 1.0;
+      this.color = color;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life -= 0.03;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = Math.max(0, this.life);
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+    }
+  }
+
+  // Spawn some targets
+  for (let i = 0; i < 5; i++) {
+    targets.push(new Target());
+    // Space them out initially
+    targets[i].y = Math.random() * canvas.height;
+  }
+
+  // Shooting mechanism
+  window.addEventListener('click', (e) => {
+    // Only shoot if it's not a link or button
+    if (e.target.closest('a, button, .btn')) return;
+
+    const mx = e.clientX;
+    const my = e.clientY;
+
+    for (let i = targets.length - 1; i >= 0; i--) {
+      const t = targets[i];
+      const dx = mx - t.x;
+      const dy = my - t.y;
+      if (Math.sqrt(dx * dx + dy * dy) < t.size + 15) { // Hit!
+        // Create sparks
+        for (let s = 0; s < 15; s++) {
+          sparks.push(new Spark(t.x, t.y, t.color));
+        }
+        // Reset target at top
+        t.reset();
+      }
+    }
+  });
+
   function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => {
-      p.update();
-      p.draw();
+    ctx.fillStyle = 'rgba(2, 6, 23, 0.3)'; // Trail effect
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw warp stars
+    stars.forEach(star => {
+      star.update();
+      star.draw();
     });
+
+    // Draw Targets
+    targets.forEach(t => {
+      t.update();
+      t.draw();
+    });
+
+    // Draw Sparks
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      s.update();
+      s.draw();
+      if (s.life <= 0) sparks.splice(i, 1);
+    }
+    
     requestAnimationFrame(animate);
   }
   animate();
@@ -337,7 +497,8 @@ function renderProjects(projects) {
     return;
   }
   grid.innerHTML = projects.map(proj => `
-    <div class="card reveal glass-card-modern">
+    <div class="card reveal glass-card-modern tilt-card">
+      <div class="glare-container"><div class="glare"></div></div>
       <div class="card-img-wrapper">
         <img src="${proj.image}" alt="${proj.title}" class="card-img" onerror="this.src='images/proj_1.jpg'">
         <div class="card-overlay">
@@ -351,6 +512,7 @@ function renderProjects(projects) {
     </div>
   `).join('');
   initReveal(); // Re-init for new elements
+  initTiltCards(); // Initialize 3D hover effects
 }
 
 function renderExperience(data) {
@@ -635,6 +797,46 @@ function initLazyLoading() {
   const images = document.querySelectorAll('img');
   images.forEach(img => {
     img.setAttribute('loading', 'lazy');
+  });
+}
+
+// Ultra-Modern 3D Tilt Effect for Project Cards
+function initTiltCards() {
+  const cards = document.querySelectorAll('.tilt-card');
+  
+  cards.forEach(card => {
+    const glare = card.querySelector('.glare');
+    
+    card.addEventListener('mousemove', (e) => {
+      // Don't tilt on mobile/touch devices
+      if (window.innerWidth < 768) return;
+      
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left; // x position within the element
+      const y = e.clientY - rect.top;  // y position within the element
+      
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      
+      const rotateX = ((y - centerY) / centerY) * -10; // Max 10 deg tilt
+      const rotateY = ((x - centerX) / centerX) * 10;
+      
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+      card.style.zIndex = '10';
+      
+      // Glare effect
+      if (glare) {
+        const angle = Math.atan2(y - centerY, x - centerX) * 180 / Math.PI - 90;
+        glare.style.transform = `rotate(${angle}deg) translate(-50%, -50%)`;
+        glare.style.opacity = '1';
+      }
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+      card.style.zIndex = '1';
+      if (glare) glare.style.opacity = '0';
+    });
   });
 }
 
